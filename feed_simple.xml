@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
+  <channel>
+    <title>A Blog from Han</title>
+    <description>일단 기술 블로그. 주관적. 구라가 섞일수 있으나 의도된 것은 아님.   
+</description>
+    <link>https://mo0om.com/</link>
+    <atom:link href="https://mo0om.com/feed.xml" rel="self" type="application/rss+xml" />
+    <pubDate>Mon, 12 Mar 2018 01:38:36 +0900</pubDate>
+    <lastBuildDate>Mon, 12 Mar 2018 01:38:36 +0900</lastBuildDate>
+    <generator>Jekyll v2.4.0</generator>
+    
+      <item>
+        <title>블로그를 시작합니다.</title>
+        <description>github page 에 둥지를 틀어옴.</description>
+        <pubDate>Sat, 10 Mar 2018 00:00:00 +0900</pubDate>
+        <link>https://mo0om.com/2018/03/10/let-get-started.html</link>
+        <guid isPermaLink="true">https://mo0om.com/2018/03/10/let-get-started.html</guid>
+        
+        <category>BLOG</category>
+        
+        
+        <category>life</category>
+        
+      </item>
+    
+  </channel>
+</rss>
