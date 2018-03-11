@@ -1,0 +1,58 @@
+# Build settings
+gems:
+  - jemoji
+  - jekyll-paginate
+  - jekyll-gist
+  - jekyll-sitemap
+  - jekyll-toc
+
+# Site settings
+title: "A Blog from Han"
+description: > # this means to ignore newlines until "email:"
+   일단 기술 블로그. 주관적. 구라가 섞일수 있으나 의도된 것은 아님.   
+email: ckh0618@gmail.com
+#blog logo
+logo: "/assets/images/df_logo.png"
+# blog cover
+cover: "/assets/images/background_image_2.jpg"
+
+name: 'Han'
+author: 'Han'
+author_image: "/assets/images/author.jpg"
+
+paginate:	15
+
+permalink: /:year/:month/:day/:title.html
+
+timezone: "Asia/Seoul"
+
+url: "https://mo0om.com" # the base hostname & protocol for your site
+# url: "http://0.0.0.0:4000" # the base hostname & protocol for your site
+baseurl: ""
+#mailchimp: "http://eepurl.com/cywDtP"
+#feedly: "http://bit.ly/2A8Dkav"
+#used to display twitter cards
+twitter_handle: "@ckh0618"
+
+#fill in disqus shortname to use disqus
+#disqus: disqus-shortname
+
+# for thumbnail
+#absolute_root_path: /Users/subicura/Workspace/github.com/subicura/subicura.github.io
+
+# tracking & ad code
+fb_app_id: "151531572181831"
+google_analytics_id: "UA-115519367-1"
+#google_ad_client: "ca-pub-2468713653725581"
+#google_ad_slot_1_id: "1015072194"
+#google_ad_slot_2_id: "8649023787"
+#naver_site_verification: "cc257cc7988ed85c9db6c228330b4870f9dfa25f"
+
+# social icons and sharing options
+social:
+  - icon:	github
+    url:	https://github.com/ckh0618
+    desc:	Fork me on github
+    share_url:
+    share_title:
+    share_link:

@@ -1,0 +1,25 @@
+{
+  "name": "ckh0618.github.io",
+  "version": "1.0.0",
+  "description": "by jekyll",
+  "main": "gulpfile.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "predeploy": "bundle exec jekyll build",
+    "deploy": "gulp deploy"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ckh0618/ckh0618.github.io.git"
+  },
+  "author": "Choi,Kunhan <ckh0618@gmail.com> ",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/ckh0618/ckh0618.github.io/issues"
+  },
+  "homepage": "https://github.com/ckh0618/ckh0618.github.io#readme",
+  "devDependencies": {
+    "gulp": "^3.9.1",
+    "gulp-gh-pages": "^0.5.4"
+  }
+}
