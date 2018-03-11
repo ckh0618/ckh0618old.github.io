@@ -6,18 +6,24 @@
 </description>
     <link>https://mo0om.com/</link>
     <atom:link href="https://mo0om.com/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Mon, 12 Mar 2018 01:38:36 +0900</pubDate>
-    <lastBuildDate>Mon, 12 Mar 2018 01:38:36 +0900</lastBuildDate>
+    <pubDate>Mon, 12 Mar 2018 02:35:39 +0900</pubDate>
+    <lastBuildDate>Mon, 12 Mar 2018 02:35:39 +0900</lastBuildDate>
     <generator>Jekyll v2.4.0</generator>
     
       <item>
-        <title>블로그를 시작합니다.</title>
-        <description>github page 에 둥지를 틀어옴.</description>
+        <title>Github Pages에서 블로그를 시작합니다.</title>
+        <description>github page 에 둥지를 틀었습니다.</description>
         <pubDate>Sat, 10 Mar 2018 00:00:00 +0900</pubDate>
         <link>https://mo0om.com/2018/03/10/let-get-started.html</link>
         <guid isPermaLink="true">https://mo0om.com/2018/03/10/let-get-started.html</guid>
         
-        <category>BLOG</category>
+        <category>BLOG. SSL</category>
+        
+        <category>Github Pages</category>
+        
+        <category>jekyll</category>
+        
+        <category>CloudFlare</category>
         
         
         <category>life</category>
