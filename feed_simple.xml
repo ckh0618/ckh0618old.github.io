@@ -6,9 +6,27 @@
 </description>
     <link>https://mo0om.com/</link>
     <atom:link href="https://mo0om.com/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Thu, 15 Mar 2018 13:54:07 +0900</pubDate>
-    <lastBuildDate>Thu, 15 Mar 2018 13:54:07 +0900</lastBuildDate>
+    <pubDate>Tue, 24 Apr 2018 01:22:54 +0900</pubDate>
+    <lastBuildDate>Tue, 24 Apr 2018 01:22:54 +0900</lastBuildDate>
     <generator>Jekyll v2.4.0</generator>
+    
+      <item>
+        <title>MySQL InnoDB 의 Default isolation level</title>
+        <description>Isolation Level 에 대해 알아보고, MySQL 에서 왜 이 값을 바꿔야하는지에 대해서 알아봅니다.</description>
+        <pubDate>Sun, 01 Apr 2018 00:00:00 +0900</pubDate>
+        <link>https://mo0om.com/2018/04/01/innodb_default_isolation.html</link>
+        <guid isPermaLink="true">https://mo0om.com/2018/04/01/innodb_default_isolation.html</guid>
+        
+        <category>InnoDB. ACID</category>
+        
+        <category>MySQL</category>
+        
+        <category>transaction-isolation</category>
+        
+        
+        <category>dbms</category>
+        
+      </item>
     
       <item>
         <title>Github Pages에서 블로그를 시작합니다.</title>
