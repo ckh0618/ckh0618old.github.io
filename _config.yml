@@ -56,3 +56,9 @@ social:
     share_url:
     share_title:
     share_link:
+
+exclude :
+  - js
+  - node_modules
+  - Gruntfile.js
+  - package.json
