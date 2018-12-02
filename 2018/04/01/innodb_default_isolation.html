@@ -24,7 +24,7 @@
     
   
   
-  <meta property="og:site_name" content="A Blog from Han" />
+  <meta property="og:site_name" content="A Just Blogn" />
   <meta property="og:title" content="MySQL InnoDB 의 Default isolation level"/>
   
   <meta property="og:description" content="Isolation Level 에 대해 알아보고, MySQL 에서 왜 이 값을 바꿔야하는지에 대해서 알아봅니다." />
@@ -43,7 +43,7 @@
   <!-- <link rel="stylesheet" href="//brick.a.ssl.fastly.net/Linux+Libertine:400,400i,700,700i/Open+Sans:400,400i,700,700i" /> -->
   <!-- <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" /> -->
 
-  <link rel="stylesheet" type="text/css" href="/css/main.css?1524579591382889000" />
+  <link rel="stylesheet" type="text/css" href="/css/main.css?1543755742456000000" />
   <link rel="stylesheet" type="text/css" href="/css/asciinema-player.css" />
   <link rel="stylesheet" type="text/css" href="/css/asciinema-theme-snazzy.css" />
   <link rel="stylesheet" type="text/css" href="/css/nerd-fonts-generated.css" />
@@ -97,7 +97,7 @@
     <main class="content" role="main">
       <article class="post">
         <div itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
-          <meta itemprop="name" content="A Blog from Han" />
+          <meta itemprop="name" content="A Just Blogn" />
           <meta itemprop="url" content="https://mo0om.com" />
           <div itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
             <meta itemprop="url" content="https://mo0om.com/assets/images/df_logo.png" />
@@ -128,7 +128,7 @@
               <div class="author-info">
                 <div class="author-image" style="background-image: url(/assets/images/author.jpg)">Blog Logo</div>
                 <h4 class="author-name" itemprop="author" itemscope itemtype="http://schema.org/Person">
-                  Han<meta itemprop="name" content="Han" /><meta itemprop="url" content="https://mo0om.com/about" />
+                  `whoami`<meta itemprop="name" content="`whoami`" /><meta itemprop="url" content="https://mo0om.com/about" />
                 </h4>
                 on
                 <time datetime="2018-04-01T00:00:00+09:00">01 Apr 2018</time>
@@ -221,12 +221,12 @@
 <h4 id="serializable">
 <a id="serializable" class="anchor" href="#serializable" aria-hidden="true"><span class="octicon octicon-link"></span></a>SERIALIZABLE</h4>
 
-<p>어떤 테이블에 SELECT 를 수행하면 해당 SELECT 가 수행된 영역에 INSERT / UPDATE / DELETE 가 불가능합니다. 근데 뭐 이 설정은 거의 볼일이 없습니다.  과감히 무시하고 넘어갑니다. </p>
+<p>어떤 테이블에 SELECT 를 수행하면 해당 SELECT 가 수행된 영역에 INSERT / UPDATE / DELETE 가 불가능합니다. 다시 말해 모든 트렌젝션은 서로 하나씩 줄서서 수행됩니다. 혼자쓰는 것과 동일합니다. 데이터의 Integrity 는 최대로 지킬수 있으나 한번에 한 트렌젝션만 허용하므로 성능은 가장 낮습니다. </p>
 
 <h2 id="mysql--transaction-isolation">
 <a id="mysql-에서-transaction-isolation" class="anchor" href="#mysql-%EC%97%90%EC%84%9C-transaction-isolation" aria-hidden="true"><span class="octicon octicon-link"></span></a>MySQL 에서 transaction-isolation</h2>
 
-<p>MySQL InnoDB 에서 제공하는 Repetable Read 는  엄밀한 Repeatable Read 와는 달라요. 위에서도 잠깐 언급했지만,  Repetable Read 와 Serializable 중간에 있습니다. 그래서 Phantom Read 를 허용하지 않는 Serialization 의 속성을 가집니다. 문제는 이러한 모호성때문에 Insert 가 Lock wait 하는 재밌지만 미쳐버리는 상황이 발생합니다. 특히 기존에 Oracle 에 익숙한 사람들은 뜬금없는 Lock 과 Deadlock 앙상블에 맨붕이 오기도 합니다. 뭐 예를 들어 다음과 같은 경우죠. </p>
+<p>MySQL InnoDB 에서 제공하는 Repetable Read 는  엄밀한 Repeatable Read 와는 다릅니다. 위에서도 잠깐 언급했지만,  Repetable Read 와 Serializable 중간에 있습니다. 그래서 Phantom Read 를 허용하지 않는 Serialization 의 속성을 가집니다. 문제는 이러한 모호성때문에 Insert 가 Lock wait 하는 재밌지만 미쳐버리는 상황이 발생합니다. 특히 기존에 Oracle 에 익숙한 사람들은 뜬금없는 Lock 과 Deadlock 앙상블에 맨붕이 오기도 합니다. 뭐 예를 들어 다음과 같은 경우죠. </p>
 
 <ul>
   <li>Table T1 을 FULL Scan 하는 쿼리를 수행하는 트렌젝션이 있다면, 이 트렌젝션이 끝나기 전까지 어떤 트렌젝션도 T1에 데이터를 INSERT 할 수 없습니다. </li>
@@ -236,7 +236,7 @@
   <li>내가 한번 값을 읽으면 다른 트렌젝션이 그 값을 바꾸었다는 걸을 알수 없습니다. 그래서 SELECT - FOR UPDATE 는 Exclusive Lock 을 설정하고 해당 Row의 최신 값을 가지고 오는 것으로 의미가 확장됩니다. Shared Lock 을 거는 LOCK IN SHARE MODE 라는 구문도 있는데 역시 최신값을 가지고 와서 다른 Transaction 이 못 바꾸게 합니다. </li>
 </ul>
 
-<p>MySQL 쪽에서도 이걸 바꿔보려고 <a href="http://www.tocker.ca/2015/01/14/proposal-to-change-replication-and-innodb-settings-in-mysql-5-7.html">시도</a>는 한거 같은데, 호환성의 이슈로 반려당한걸로 보입니다. 사실 메이저 버젼 변경도 아니고, MySQL 과 같이 많이 사용되는 DBMS 의 기본값은 변경하기 상당히 까다롭습니다. 게다가 이렇게 데이터의 정합성에 영향을 미치는 기본값은 매우 변경하기 힘들죠. </p>
+<p>MySQL 쪽에서도 바꾸고 싶을 수 잇는데 힘들겁니다. 사실 메이저 버젼 변경도 아니고, MySQL 과 같이 많이 사용되는 DBMS 의 기본값은 변경하기 상당히 까다롭습니다. 게다가 이렇게 데이터의 정합성에 영향을 미치는 기본값은 매우 변경하기 힘들죠. </p>
 
 <h3 id="section-1">
 <a id="영향도" class="anchor" href="#%EC%98%81%ED%96%A5%EB%8F%84" aria-hidden="true"><span class="octicon octicon-link"></span></a>영향도</h3>
@@ -283,7 +283,7 @@
             <h5 class="index-headline featured"><span>Written by</span></h5>
             <section class="author">
               <div class="author-image" style="background-image: url(/assets/images/author.jpg)">Blog Logo</div>
-              <h4>Han</h4>
+              <h4>`whoami`</h4>
               <p class="bio"></p>
               <hr>
               <p class="published">Published <time datetime="2018-04-01 00:00">01 Apr 2018</time></p>
@@ -323,21 +323,14 @@
     <aside class="read-next">
       
       
-        <a class="read-next-story prev no-cover" href="/2018/03/10/let-get-started.html">
-          <section class="post">
-            <h2>Github Pages에서 블로그를 시작합니다.</h2>
-            <p>github page 에 둥지를 틀었습니다.</p>
-          </section>
-        </a>
-      
     </aside>
     <footer class="post-site-footer clearfix">
-      <section class="copyright"><a href="/">A Blog from Han</a> © 2018</section>
+      <section class="copyright"><a href="/">A Just Blogn</a> © 2018</section>
     </footer>
 
     <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
 <script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
-<script type="text/javascript" src="/assets/js/index.js?1524579591382889000"></script>
+<script type="text/javascript" src="/assets/js/index.js?1543755742456000000"></script>
 <script type="text/javascript" src="/assets/js/readingtime.js"></script>
 <script type="text/javascript" src="/assets/js/asciinema-player.js"></script>
 <script>
