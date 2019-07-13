@@ -1,5 +1,5 @@
 ---
-published: true
+published: false
 title: MySQL InnoDB 의 Default isolation level  
 categories: DBMS 
 tags: [InnoDB. ACID, MySQL, transaction-isolation]
