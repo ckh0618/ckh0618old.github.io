@@ -1,32 +1,14 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <rss version="2.0" xmlns:atom="http://www.w3.org/2005/Atom">
   <channel>
-    <title>A Just Blogn</title>
-    <description>블로그. 주관적. 구라가 섞일수 있으나 의도된 것은 아님.   
+    <title>A Blog from Han</title>
+    <description>일단 기술 블로그. 주관적. 구라가 섞일수 있으나 의도된 것은 아님.   
 </description>
     <link>https://mo0om.com/</link>
     <atom:link href="https://mo0om.com/feed.xml" rel="self" type="application/rss+xml" />
-    <pubDate>Sun, 02 Dec 2018 22:04:39 +0900</pubDate>
-    <lastBuildDate>Sun, 02 Dec 2018 22:04:39 +0900</lastBuildDate>
+    <pubDate>Sat, 13 Jul 2019 11:40:17 +0900</pubDate>
+    <lastBuildDate>Sat, 13 Jul 2019 11:40:17 +0900</lastBuildDate>
     <generator>Jekyll v2.4.0</generator>
-    
-      <item>
-        <title>MySQL InnoDB 의 Default isolation level</title>
-        <description>Isolation Level 에 대해 알아보고, MySQL 에서 왜 이 값을 바꿔야하는지에 대해서 알아봅니다.</description>
-        <pubDate>Sun, 01 Apr 2018 00:00:00 +0900</pubDate>
-        <link>https://mo0om.com/2018/04/01/innodb_default_isolation.html</link>
-        <guid isPermaLink="true">https://mo0om.com/2018/04/01/innodb_default_isolation.html</guid>
-        
-        <category>InnoDB. ACID</category>
-        
-        <category>MySQL</category>
-        
-        <category>transaction-isolation</category>
-        
-        
-        <category>dbms</category>
-        
-      </item>
     
       <item>
         <title>Github Pages에서 블로그를 시작합니다.</title>
