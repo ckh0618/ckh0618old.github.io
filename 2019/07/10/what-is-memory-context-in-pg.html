@@ -1,0 +1,426 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  <meta charset="utf-8">
+  <!-- (1) Optimize for mobile versions: http://goo.gl/EOpFl -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <!-- (1) force latest IE rendering engine: bit.ly/1c8EiC9 -->
+  <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+  <title>PostgreSQL 에서 MemoryContext</title>
+  <meta name="description" content="PostgreSQL Extension 관련코드를 보다보면 MemoryContext 라는 개념이 많이 나옵니다. 이 부분에 대해서 정리해봅니다." />
+
+  <meta name="HandheldFriendly" content="True" />
+  <meta name="MobileOptimized" content="320" />
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  
+    <meta name="twitter:card" content="summary" />
+    <meta name="twitter:site" content="@ckh0618" />
+    <meta name="twitter:title" content="PostgreSQL 에서 MemoryContext" />
+    <meta name="twitter:image" content="https://mo0om.com/assets/images/df_logo.png" />
+    
+    <meta name="twitter:description"  content="PostgreSQL Extension 관련코드를 보다보면 MemoryContext 라는 개념이 많이 나옵니다. 이 부분에 대해서 정리해봅니다." />
+    
+  
+  
+  <meta property="og:site_name" content="`whoami' " />
+  <meta property="og:title" content="PostgreSQL 에서 MemoryContext"/>
+  
+  <meta property="og:description" content="PostgreSQL Extension 관련코드를 보다보면 MemoryContext 라는 개념이 많이 나옵니다. 이 부분에 대해서 정리해봅니다." />
+  
+  <meta property="og:image" content="https://mo0om.com/assets/images/df_logo.png" />
+  <meta property="og:url" content="https://mo0om.com/2019/07/10/what-is-memory-context-in-pg.html" />
+  <meta property="og:type" content="article" />
+  <meta property="article:published_time" content="2019-07-10T00:00:00+09:00">
+
+  <meta property="fb:app_id" content="151531572181831" />
+
+  <meta name="naver-site-verification" content="" />
+
+  <link rel="canonical" href="https://mo0om.com/2019/07/10/what-is-memory-context-in-pg.html"/>
+  <link rel="shortcut icon" href="/assets/images/favicon.png" type="image/png"/>
+  <!-- <link rel="stylesheet" href="//brick.a.ssl.fastly.net/Linux+Libertine:400,400i,700,700i/Open+Sans:400,400i,700,700i" /> -->
+  <!-- <link href="//maxcdn.bootstrapcdn.com/font-awesome/4.2.0/css/font-awesome.min.css" rel="stylesheet" /> -->
+
+  <link rel="stylesheet" type="text/css" href="/css/main.css?1566120247639429000" />
+  <link rel="stylesheet" type="text/css" href="/css/asciinema-player.css" />
+  <link rel="stylesheet" type="text/css" href="/css/asciinema-theme-snazzy.css" />
+  <link rel="stylesheet" type="text/css" href="/css/nerd-fonts-generated.css" />
+  <link rel="stylesheet" type="text/css" href="/css/custom.css" />
+  <!-- <link rel="stylesheet" type="text/css" media="print" href="/css/print.css" />-->
+  
+  <script src="/assets/js/webfont.js"></script>
+  <script type="text/javascript">
+    WebFont.load({
+      custom: {
+        families: ['Spoqa Han Sans'],
+        urls: ['/css/spoqa-han-sans-font.css']
+      }
+    });
+  </script>
+  <script>
+    var _mailChimpUrl = "";
+  </script>
+
+  
+</head>
+
+  <body itemscope itemtype="http://schema.org/BlogPosting">
+    <!-- header start -->
+<script>
+  (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+  (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+  m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+  })(window,document,'script','https://www.google-analytics.com/analytics.js','ga');
+
+  ga('create', 'UA-115519367-1', 'auto');
+  ga('require', 'displayfeatures');
+  ga('send', 'pageview');
+</script>
+
+<div id="fb-root"></div>
+<script>(function(d, s, id) {
+  var js, fjs = d.getElementsByTagName(s)[0];
+  if (d.getElementById(id)) return;
+  js = d.createElement(s); js.id = id;
+  js.src = "https://connect.facebook.net/ko_KR/sdk.js#xfbml=1&version=v2.12&appId=151531572181831";
+  fjs.parentNode.insertBefore(js, fjs);
+}(document, 'script', 'facebook-jssdk'));</script>
+
+<script type="text/javascript">!function(d,i){if(!d.getElementById(i)){var j=d.createElement("script");j.id=i;j.src="https://widgets.getpocket.com/v1/j/btn.js?v=1";var w=d.getElementById(i);d.body.appendChild(j);}}(document,"pocket-btn-js");</script>
+
+<a href="https://mo0om.com" class="logo-readium"><span class="logo" style="background-image: url(/assets/images/df_logo.png)"></span></a>
+<!-- header end -->
+
+
+    <main class="content" role="main">
+      <article class="post">
+        <div itemprop="publisher" itemscope itemtype="http://schema.org/Organization">
+          <meta itemprop="name" content="`whoami' " />
+          <meta itemprop="url" content="https://mo0om.com" />
+          <div itemprop="logo" itemscope itemtype="http://schema.org/ImageObject">
+            <meta itemprop="url" content="https://mo0om.com/assets/images/df_logo.png" />
+          </div>
+        </div>
+        <div itemprop="image" itemscope itemtype="http://schema.org/ImageObject">
+          <meta itemprop="url" content="https://mo0om.com/assets/images/author.jpg" />
+        </div>
+        <meta itemprop="headline" content="PostgreSQL 에서 MemoryContext" />
+        <meta itemprop="mainEntityOfPage" content="/2019/07/10/what-is-memory-context-in-pg.html" />
+        <meta itemprop="datePublished" content="2019-07-10 00:00:00 +0900" />
+        <meta itemprop="dateModified" content="2019-03-09 03:30:00 +0900" />
+        
+        <div class="noarticleimage">
+          <div class="post-meta">
+            <h1 class="post-title">
+              PostgreSQL 에서 MemoryContext
+              
+            </h1>
+            <div class="cf post-meta-text">
+              <section class="share">
+                <div class="fb-like" data-href="https://mo0om.com/2019/07/10/what-is-memory-context-in-pg.html" data-layout="button_count" data-action="like" data-show-faces="true" data-share="true"></div>
+                <a data-pocket-label="pocket" data-pocket-count="none" class="pocket-btn" data-lang="ko"></a> 
+                
+                  
+                
+              </section>
+              <div class="author-info">
+                <div class="author-image" style="background-image: url(/assets/images/author.jpg)">Blog Logo</div>
+                <h4 class="author-name" itemprop="author" itemscope itemtype="http://schema.org/Person">
+                  `whoami`<meta itemprop="name" content="`whoami`" /><meta itemprop="url" content="https://mo0om.com/about" />
+                </h4>
+                on
+                <time datetime="2019-07-10T00:00:00+09:00">10 Jul 2019</time>
+              </div>
+            </div>
+          </div>
+        </div>
+        <br>
+        <br>
+        <br>
+        
+        <section class="post-content">
+          <div class="post-reading">
+            <span class="post-reading-time"></span> read
+          </div>
+          <a name="topofpage"></a>
+          <ul class="section-nav">
+<li class="toc-entry toc-h2"><a href="#배경">배경</a></li>
+<li class="toc-entry toc-h2"><a href="#memorycontext">MemoryContext</a>
+<ul>
+<li class="toc-entry toc-h3"><a href="#create">Create</a></li>
+<li class="toc-entry toc-h3"><a href="#allocate">Allocate</a></li>
+<li class="toc-entry toc-h3"><a href="#destroy">Destroy</a></li>
+<li class="toc-entry toc-h3"><a href="#reset">Reset</a></li>
+</ul>
+</li>
+<li class="toc-entry toc-h2"><a href="#memorycontext-개념의-장점">MemoryContext 개념의 장점</a></li>
+<li class="toc-entry toc-h2"><a href="#memory-context--구현">Memory Context  구현</a></li>
+<li class="toc-entry toc-h2"><a href="#memorycontext-사용">MemoryContext 사용</a></li>
+<li class="toc-entry toc-h2"><a href="#결론">결론</a></li>
+<li class="toc-entry toc-h2"><a href="#reference">Reference</a></li>
+</ul><h2 id="배경">
+<a class="anchor" href="#%EB%B0%B0%EA%B2%BD" aria-hidden="true"><span class="octicon octicon-link"></span></a>배경</h2>
+
+<p>메모리 관리는 여러운 작업중에 하나입니다. 메모리를 할당하고 사용하는 것은 좋은데 할당받은 메모리 포인터를 적시에 반환하지 않거나 놓쳐버리는 경우 흔히 말하는 메모리 릭이 발생하게 됩니다. 이러한 문제는 간단한 커멘드라인 유틸리티등과 같이 짧은 시간 동작하고 종료되는 경우는 그리 큰 문제가 되지 않습니다. OS 가 알아서 프로세스가 종료될때 할당받은 자원을 정리하여 주거든요. 그러나 데이터베이스 서버와 같이 오랜시간 데몬 형태로 동작하여야하는 경우는 메모리를 다 잡아먹고 시스템을 서비스 불능 상태로 만들어버리는 등의 심각한 문제를 일으킬수 있습니다.</p>
+
+<h2 id="memorycontext">
+<a class="anchor" href="#memorycontext" aria-hidden="true"><span class="octicon octicon-link"></span></a>MemoryContext</h2>
+
+<p>PostgreSQL 에서는 이러한 메모리 관리 이슈를 단순화 하기 위하여 MemoryContext 라는 추상화된 개념을 사용합니다. MemoryContext 를 한마디로 간단히 표현하면 계층화된 Memory Pool Manager 라고 할 수 있는데요. 다음과 같은 동작을 지원합니다.</p>
+
+<ul>
+  <li>Create</li>
+  <li>Allocate</li>
+  <li>Destroy</li>
+  <li>Reset</li>
+</ul>
+
+<p>하나씩 살펴보면 다음과 같습니다.</p>
+
+<h3 id="create">
+<a class="anchor" href="#create" aria-hidden="true"><span class="octicon octicon-link"></span></a>Create</h3>
+
+<p>새로운 MemoryContext 를 생성합니다. 이때 부모 Context 를 지정하는데, 최상위 부모는 TopMemoryContext 입니다. TopMemoryContext 하위에 각 모듈별로 세부적인 MemoryContext 가 존재합니다. 개발하는 모듈에 따라 만들고자 하는 MemoryContext 가 어느 위치에 존재하여야할지는 개발자가 판단하여야 합니다. 예를 들어 현재의 Transaction 으로 라이프사이클이 정해진  메모리를 할당하기 위해서는 CurTransactionContext 하단에 위치하는 MemoryContext 를 만들어서 사용하는 것이 유리합니다. 만약 내가 메모리 해제를 잊었더라도 CurTransactionContext 가 Destory 되면서 내가 할당한 MemoryContext 안의 메모리를 같이 정리해줄꺼니까요.</p>
+
+<h3 id="allocate">
+<a class="anchor" href="#allocate" aria-hidden="true"><span class="octicon octicon-link"></span></a>Allocate</h3>
+
+<p>현재 내가 사용하는 MemoryContext 를 통해서 메모리를 할당합니다. palloc() 을 하면 현재 내가 세팅한 MemoryContext 에서 관리되는 메모리를 리턴해줍니다. 이 내용은 아래에서 좀 더 자세히 살펴봅니다.</p>
+
+<h3 id="destroy">
+<a class="anchor" href="#destroy" aria-hidden="true"><span class="octicon octicon-link"></span></a>Destroy</h3>
+
+<p>현재 Context 를 삭제합니다. 계층화 되어서 좋은 이유가 여기서 나오는데, Destroy 는 현재 삭제되는 MemoryContext 하단의 MemoryContext 도 같이 같이 Destory 해줍니다. SQL옵션중에 CASCADE 와 비슷합니다. 그렇기 때문에 설령 하부 MemoryContext 에서 Destroy 하지 않더라도 상위에서 한번에 정리할 수 있습니다.</p>
+
+<h3 id="reset">
+<a class="anchor" href="#reset" aria-hidden="true"><span class="octicon octicon-link"></span></a>Reset</h3>
+
+<p>현재 Memory Context 가 관리하는 메모리를 Reset 합니다 free() 와 동일한데, 해당 MemoryContext에서 할당된 메모리를 한번에 free() 한다고 생각하면 될것 같습니다.</p>
+
+<h2 id="memorycontext-개념의-장점">
+<a class="anchor" href="#memorycontext-%EA%B0%9C%EB%85%90%EC%9D%98-%EC%9E%A5%EC%A0%90" aria-hidden="true"><span class="octicon octicon-link"></span></a>MemoryContext 개념의 장점</h2>
+
+<p>이러한 MemoryContext 라는 개념을 도입하면서 개발자는 다음과 같은 장점을 가집니다.</p>
+
+<ul>
+  <li>
+    <p>모듈 A 에서 관리되는 메모리는 모듈 A에서 만들어진 Context 에서 모두 관리됩니다. 만약 A 모듈의 하위 모듈인 A’ 모듈에서 새로운 Context 를 부모 Context 를 A 로 지정하여 만들어 관리 주체를 세분화 시킬수도 있습니다. 즉 이러한 세부적인 메모리 관리는 여러사람들이 코드를 고칠때 매우 높은 수준의 메모리 안정성을 제공할 수 있는 토대가 됩니다.</p>
+  </li>
+  <li>
+    <p>기존의 전통적인 C 프로그램에서는 개발자가 메모리의 포인터를 다 관리하고 있어야 적절한 시점에 삭제하고 재사용할수 있도록 OS 에게 돌려줄수 있습니다. 그런데 이러한 MemoryContext 방식은 개발자가 단편화된 메모리를 관리할 필요가 없습니다. 필요할때마다 Allocation 을 통해 메모리를 할당받아서 사용하다가 해당 모듈이 종료되고 더 이상 해당 Memory Context 가 필요하지 않을때 한번에 삭제할수 있습니다.</p>
+  </li>
+  <li>
+    <p>Memory 관리를 Userspace에서 수행하는 것이기 때문에 훨씬 더 빠르고 OS 에 덜 의존적입니다.</p>
+  </li>
+</ul>
+
+<h2 id="memory-context--구현">
+<a class="anchor" href="#memory-context--%EA%B5%AC%ED%98%84" aria-hidden="true"><span class="octicon octicon-link"></span></a>Memory Context  구현</h2>
+
+<p>PostgreSQL 은 현재 사용 중인 MemoryContext 를 저장하는 전역변수를 가지고 있습니다. palloc.h 를 보면 다음과 같은 정의를 볼 수 있습니다.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="cm">/*
+ * CurrentMemoryContext is the default allocation context for palloc().
+ * Avoid accessing it directly!  Instead, use MemoryContextSwitchTo()
+ * to change the setting.
+ */</span>
+<span class="k">extern</span> <span class="n">PGDLLIMPORT</span> <span class="n">MemoryContext</span> <span class="n">CurrentMemoryContext</span><span class="p">;</span>
+</code></pre></div></div>
+
+<p>이 전역변수를 통해서 현재 사용중인 MemoryContext 포인터를 일일이 전달하지 않고 malloc() / free() 와 동일하게 palloc() / pfree() 을 사용할 수 있습니다. palloc() 의 정의를 보면 다음과 같습니다.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="kt">void</span> <span class="o">*</span>
+<span class="nf">palloc</span><span class="p">(</span><span class="n">Size</span> <span class="n">size</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="cm">/* duplicates MemoryContextAlloc to avoid increased overhead */</span>
+    <span class="kt">void</span>       <span class="o">*</span><span class="n">ret</span><span class="p">;</span>
+    <span class="n">MemoryContext</span> <span class="n">context</span> <span class="o">=</span> <span class="n">CurrentMemoryContext</span><span class="p">;</span>
+
+    <span class="n">AssertArg</span><span class="p">(</span><span class="n">MemoryContextIsValid</span><span class="p">(</span><span class="n">context</span><span class="p">));</span>
+    <span class="n">AssertNotInCriticalSection</span><span class="p">(</span><span class="n">context</span><span class="p">);</span>
+    <span class="p">...</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>전역변수인 CurrentMemoryContext 에 세팅된 값을 얻어와서 설정하는 것을 볼 수 있습니다.</p>
+
+<h2 id="memorycontext-사용">
+<a class="anchor" href="#memorycontext-%EC%82%AC%EC%9A%A9" aria-hidden="true"><span class="octicon octicon-link"></span></a>MemoryContext 사용</h2>
+
+<p>CurrentMemoryContext 라는 전역변수가 있으니 직접 컨텍스트 할당하면 될것 같지만, 해당 변수의 선언에 달린 주석에서 경고한것 처럼 그렇게 하면 안됩니다. 대신 PostgreSQL 은 MemoryContextSwitchTo() 라는 함수를 정의했고 사용자는 이걸 사용하면 됩니다. 아래 코드와 같이 매우 간단합니다.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="k">static</span> <span class="kr">inline</span> <span class="n">MemoryContext</span>
+<span class="nf">MemoryContextSwitchTo</span><span class="p">(</span><span class="n">MemoryContext</span> <span class="n">context</span><span class="p">)</span>
+<span class="p">{</span>
+    <span class="n">MemoryContext</span> <span class="n">old</span> <span class="o">=</span> <span class="n">CurrentMemoryContext</span><span class="p">;</span>
+
+    <span class="n">CurrentMemoryContext</span> <span class="o">=</span> <span class="n">context</span><span class="p">;</span>
+    <span class="k">return</span> <span class="n">old</span><span class="p">;</span>
+<span class="p">}</span>
+</code></pre></div></div>
+
+<p>MemoryContext 를 전환할때 old 값을 저장하라는 의미로 위 함수를 만들어놓은 것 같습니다.</p>
+
+<p>보통 MemoryContext 를 새롭게 생성하고 이를 사용하는 방식은 다음과 같이 정형화 되어있습니다.</p>
+
+<div class="language-c highlighter-rouge"><div class="highlight"><pre class="highlight"><code><span class="n">MemoryContext</span> <span class="n">old</span><span class="p">,</span> <span class="n">new</span><span class="p">;</span> 
+
+<span class="c1">// 새로운 MemoryContext 를 만듭니다. 부모는 TopMemoryContext 입니다. 
+</span><span class="n">new</span> <span class="o">=</span> <span class="n">AllocSetContextCreate</span> <span class="p">(</span>
+						<span class="n">TopMemoryContext</span><span class="p">,</span> 
+						<span class="s">"mytest context"</span><span class="p">,</span> 
+<span class="cp">#if PG_VERSION_NUM &gt;= 90600
+</span>						<span class="n">ALLOCSET_DEFAULT_SIZES</span>
+<span class="cp">#else
+</span>						<span class="n">ALLOCSET_DEFAULT_MINSIZE</span><span class="p">,</span>
+						<span class="n">ALLOCSET_DEFAULT_INITSIZE</span><span class="p">,</span>
+						<span class="n">ALLOCSET_DEFAULT_MAXSIZE</span>
+<span class="cp">#endif
+</span>						<span class="p">)</span> <span class="p">;</span>
+
+<span class="c1">//  새로운 MemoryContext 로 전환. 이제부터 메모리 할당은 새로운 MemoryContext 에서 관리됩니다. 
+</span><span class="n">old</span> <span class="o">=</span> <span class="n">MemoryContextSwitchTo</span> <span class="p">(</span> <span class="n">new</span> <span class="p">);</span> 
+
+<span class="cm">/* do somthing.... */</span> 
+
+<span class="c1">// 다 썼으면 MemoryContext 를 이전값으로 옮겨줍니다. 
+</span><span class="n">MemoryContextSwitchTo</span> <span class="p">(</span> <span class="n">old</span> <span class="p">);</span> 
+
+</code></pre></div></div>
+
+<h2 id="결론">
+<a class="anchor" href="#%EA%B2%B0%EB%A1%A0" aria-hidden="true"><span class="octicon octicon-link"></span></a>결론</h2>
+
+<p>MemoryContext 는 많은 사람들이 여러가지 모듈을 동시에 변경하는 PostgreSQL 에서 필수적으로 사용되는 개념입니다. 개발자는 자신의 모듈에 대해서만 메모리 관리를 신경쓰면 되고, 혹시라도 실수로 메모리 해제를 잊었더라도 상위 MemoryContext 가 삭제되면 같이 삭제되기 때문에 안전합니다.</p>
+
+<h2 id="reference">
+<a class="anchor" href="#reference" aria-hidden="true"><span class="octicon octicon-link"></span></a>Reference</h2>
+<ul>
+  <li>https://blog.pgaddict.com/posts/introduction-to-memory-contexts</li>
+  <li>https://github.com/postgres/postgres/tree/master/src/backend/utils/mmgr</li>
+</ul>
+
+          <p class="tags">
+            
+              <a href="/tags#postgresql-ref">PostgreSQL</a>
+            
+              <a href="/tags#memorycontext-ref">MemoryContext</a>
+            
+              <a href="/tags#memorymanager-ref">MemoryManager</a>
+            
+              <a href="/tags#memorymanagement-ref">MemoryManagement</a>
+            
+          </p>
+        </section>
+        <footer class="post-footer">
+          <section class="share">
+            <div class="fb-like" data-href="https://mo0om.com/2019/07/10/what-is-memory-context-in-pg.html" data-layout="button_count" data-action="like" data-show-faces="true" data-share="true"></div>
+            <a data-pocket-label="pocket" data-pocket-count="none" class="pocket-btn" data-lang="ko"></a>
+            
+              
+            
+          </section>
+        </footer>
+        <div class="bottom-teaser cf">
+          <div class="isLeft">
+            <h5 class="index-headline featured"><span>Written by</span></h5>
+            <section class="author">
+              <div class="author-image" style="background-image: url(/assets/images/author.jpg)">Blog Logo</div>
+              <h4>`whoami`</h4>
+              <p class="bio"></p>
+              <hr>
+              <p class="published">Published <time datetime="2019-07-10 00:00">10 Jul 2019</time></p>
+            </section>
+            <footer class="subscribe-info">
+                <section class="poweredby">Proudly published with <a href="http://jekyllrb.com"> Jekyll</a></section>
+                <a class="subscribe" href=""  target="blank"><img id='feedlyFollow' src='//s3.feedly.com/img/follows/feedly-follow-logo-black_2x.png' alt='follow us in feedly' width='18' height='18'> Feedly 구독하기</a><br />
+                <a class="subscribe" href="/feed.xml"> <span class="tooltip"> <i class="nf nf-fa-rss"></i> RSS 구독하기</span></a><br />
+                
+            </footer>
+          </div>
+
+        <!-- Disable google adsense yet !
+          <div class="isRight">
+            <h5 class="index-headline featured"><span>Supported by</span></h5>
+            <div class="googleads">
+              
+            </div>
+          </div>
+        -->
+        </div>
+
+        
+
+         
+        <div class="fb-comments-wrapper">
+          
+            <div class="fb-comments" data-href="https://mo0om.com/2019/07/10/what-is-memory-context-in-pg.html" data-num-posts="5" data-order-by="social" data-width="100%"></div>
+          
+        </div>
+        
+
+        
+      </article>
+    </main>
+
+    <aside class="read-next">
+      
+      
+        <a class="read-next-story prev no-cover" href="/2018/03/10/let-get-started-copy.html">
+          <section class="post">
+            <h2>Github Pages에서 블로그를 시작합니다.</h2>
+            <p>github page 에 둥지를 틀었습니다.</p>
+          </section>
+        </a>
+      
+    </aside>
+    <footer class="post-site-footer clearfix">
+      <section class="copyright"><a href="/">`whoami' </a> © 2019</section>
+    </footer>
+
+    <script src="https://code.jquery.com/jquery-1.11.1.min.js"></script>
+<script type="text/javascript" src="/assets/js/jquery.fitvids.js"></script>
+<script type="text/javascript" src="/assets/js/index.js?1566120247639429000"></script>
+<script type="text/javascript" src="/assets/js/readingtime.js"></script>
+<script type="text/javascript" src="/assets/js/asciinema-player.js"></script>
+<script>
+(function ($) {
+  "use strict";
+  $(document).ready(function(){
+
+    var $window = $(window),
+    $image = $('.post-image-image, .teaserimage-image');
+
+      $window.on('scroll', function() {
+        var top = $window.scrollTop();
+
+        if (top < 0 || top > 1500) { return; }
+        $image
+          .css('transform', 'translate3d(0px, '+top/3+'px, 0px)')
+          .css('opacity', 1-Math.max(top/700, 0));
+      });
+      $window.trigger('scroll');
+
+      var height = $('.article-image').height();
+      $('.post-content').css('padding-top', height + 'px');
+
+      $('a[href*=#]:not([href=#])').click(function() {
+        if (location.pathname.replace(/^\//,'') == this.pathname.replace(/^\//,'')
+         && location.hostname == this.hostname) {
+          var target = $(this.hash);
+          target = target.length ? target : $('[name=' + this.hash.slice(1) +']');
+          if (target.length) {
+            $('html,body').animate({ scrollTop: target.offset().top }, 500);
+            return false;
+          }
+        }
+      });
+
+  });
+}(jQuery));
+</script>
+
+  </body>
+</html>
